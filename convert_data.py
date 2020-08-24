@@ -12,7 +12,8 @@ def convert_to_plain_data(root_dir, plain_output_file, output_file_id_file):
                 episode = ''
                 for chunk in input_data['results']:
                     for c in chunk['alternatives']:
-                        episode += c['transcript']
+                        if len(c.keys()) > 0:
+                            episode += c['transcript']
                 input_episode_ids.append(f)
                 input_episodes.append(episode)
     with open(plain_output_file, 'w') as outfile:
