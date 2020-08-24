@@ -18,6 +18,6 @@ def convert_to_plain_data(root_dir, plain_output_file, output_file_id_file):
                 input_episodes.append(episode)
     with open(plain_output_file, 'w') as outfile:
         for e in input_episodes:
-            plain_output_file.write(e+'\n')
+            outfile.write(e+'\n')
     with open(output_file_id_file, 'w') as outid:
         json.dump(input_episode_ids, outid)
