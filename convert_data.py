@@ -21,3 +21,36 @@ def convert_to_plain_data(root_dir, plain_output_file, output_file_id_file):
             outfile.write(e+'\n')
     with open(output_file_id_file, 'w') as outid:
         json.dump(input_episode_ids, outid)
+
+def produce_gan_podcast_run(result_file, episode_id_file, root_dir, output_dir):
+    with open(episode_id_file, 'r') as ei:
+        episodes = json.load(ei)
+    with open(result_file, 'r') as rf:
+        summaries = rf.readlines()
+    assert len(episodes) == len(summaries)
+
+def split_plain_input_text(input_text, outdir):
+    lines = []
+    with open(input_text, 'r') as pi:
+        for l in pi:
+            lines.append(l)
+    line_words = []
+    for l in lines:
+        line_words.append(l.split())
+    chunks = []
+    for l in lines:
+        chunks.append([])
+    chunk_size = 1000
+    iterations = 10
+    for i in range(iterations):
+        for j in range(len(lines)):
+            words = line_words[j]
+            if i * chunk_size < len(words):
+                s = ' '.join(words[i * chunk_size:(i + 1) * chunk_size])
+                chunks[j].append(s)
+            else:
+                chunks[j].append('.')
+    for i in range(len(chunks[0])):
+        with open(outdir + '/input_split_' + str(i + 1), 'w') as pi:
+            for l in chunks:
+                pi.write(l[i].strip() + '\n')
