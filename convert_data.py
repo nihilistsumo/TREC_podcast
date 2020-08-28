@@ -1,5 +1,6 @@
 import json
 import os
+from hashlib import sha1
 
 def convert_to_plain_data(root_dir, plain_output_file, output_file_id_file):
     input_episodes = []
@@ -54,3 +55,21 @@ def split_plain_input_text(input_text, outdir):
         with open(outdir + '/input_split_' + str(i + 1), 'w') as pi:
             for l in chunks:
                 pi.write(l[i].strip() + '\n')
+
+def convert_qrels_to_secid_dict(qrels_file, secid_dict_output):
+    qrels = {}
+    with open(qrels_file, 'r') as qf:
+        for l in qf:
+            q = l.split(' ')[0]
+            p = l.split(' ')[2]
+            if q in qrels.keys():
+                qrels[q].append(p)
+            else:
+                qrels[q] = [p]
+    qrels_secid = {}
+    for q in qrels.keys():
+        qtext = q.split(':')[1].replace('/', ' ').replace('%20', ' ')
+        qhash = sha1(str.encode(qtext)).hexdigest()
+        qrels_secid['SECID:' + qhash] = {'paras': qrels[q], 'qtext': qtext}
+    with open(secid_dict_output, 'w') as out:
+        json.dump(qrels_secid, out)
