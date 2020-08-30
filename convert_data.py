@@ -97,3 +97,28 @@ def generate_section_embeds(secid_dict, secid_out, secvec_out, model_name='bert-
     model = SentenceTransformer(model_name)
     vecs = model.encode(texts, show_progress_bar=True)
     np.save(secvec_out, vecs)
+
+def generate_summary_lines_dict(summary_input_texts, input_file_names, result_file_prefix, num_splits, out_path):
+    summary_splits = []
+    for i in range(num_splits):
+        with open(result_file_prefix+'_' + str(i + 1) + '.txt', 'r') as f:
+            summary_splits.append(f.readlines())
+    summaries = []
+    for i in range(len(summary_splits[0])):
+        summary = []
+        for j in range(len(summary_splits)):
+            text = summary_splits[j][i].strip()
+            if text != 'and':
+                summary.append(text)
+        summaries.append(summary)
+    with open(input_file_names, 'r') as f:
+        input_ids = json.load(f)
+    with open(summary_input_texts, 'r') as text:
+        input_texts = text.readlines()
+    assert len(input_ids) == len(input_texts)
+    assert len(input_ids) == len(summaries)
+    summary_dict = {}
+    for i in range(len(input_ids)):
+        summary_dict[input_ids[i]] = {'episode':input_texts[i], 'summary_lines':summaries[i]}
+    with open(out_path, 'w') as out:
+        json.dump(summary_dict, out)
