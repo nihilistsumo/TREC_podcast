@@ -72,10 +72,13 @@ def convert_qrels_to_secid_dict(qrels_file, secid_dict_output):
                 qrels[q].append(p)
             else:
                 qrels[q] = [p]
+    print('Total '+str(len(qrels))+' sections')
     qrels_secid = {}
     for q in qrels.keys():
         qtext = q.split(':')[1].replace('/', ' ').replace('%20', ' ')
         qhash = sha1(str.encode(qtext)).hexdigest()
         qrels_secid['SECID:' + qhash] = {'paras': qrels[q], 'qtext': qtext}
+        if len(qrels_secid) % 100 == 0:
+            print(len(qrels_secid))
     with open(secid_dict_output, 'w') as out:
         json.dump(qrels_secid, out)
