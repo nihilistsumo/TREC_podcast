@@ -48,12 +48,12 @@ def run_model(qrels_secid_data, secids, secid_vecs, paraids, paraid_vecs, max_se
     train_indices = torch.tensor(random.sample(list(range(sample_size)), sample_size*4//5))
     val_indices = torch.tensor([i for i in range(sample_size) if i not in train_indices])
 
-    X = torch.tensor(X).float().cuda()
-    y = torch.tensor(y).float().cuda()
-    X_val = torch.index_select(X, 0, val_indices)
-    y_val = torch.index_select(y, 0, val_indices)
-    X = torch.index_select(X, 0, train_indices)
-    y = torch.index_select(y, 0, train_indices)
+    X = torch.tensor(X).float()
+    y = torch.tensor(y).float()
+    X_val = torch.index_select(X, 0, val_indices).cuda()
+    y_val = torch.index_select(y, 0, val_indices).cuda()
+    X = torch.index_select(X, 0, train_indices).cuda()
+    y = torch.index_select(y, 0, train_indices).cuda()
 
     m = SummaryEmbedGen(emb_vec_size, max_seq_len).cuda()
     opt = optim.Adam(m.parameters(), lr=lr)
