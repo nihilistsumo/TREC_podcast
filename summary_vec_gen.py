@@ -47,7 +47,7 @@ def run_model(qrels_secid_data, secids, secid_vecs, paraids, paraid_vecs, max_se
     mseloss = nn.MSELoss()
     for i in range(1000):
         opt.zero_grad()
-        ypred = m(X)
+        ypred = m(X).cuda()
         loss = mseloss(ypred, y)
         loss.backward()
         opt.step()
