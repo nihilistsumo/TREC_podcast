@@ -92,7 +92,7 @@ def generate_section_embeds(secid_dict, secid_out, secvec_out, model_name='bert-
     secids = []
     for s in dat.keys():
         secids.append(s)
-        texts.append(secid_dict[s]['qtext'])
+        texts.append(dat[s]['qtext'])
     np.save(secid_out, secids)
     model = SentenceTransformer(model_name)
     vecs = model.encode(texts, show_progress_bar=True)
