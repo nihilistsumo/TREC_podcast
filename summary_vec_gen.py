@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 import json
+import argparse
 
 class SummaryEmbedGen(nn.Module):
 
@@ -57,12 +58,35 @@ def run_model(qrels_secid_data, secids, secid_vecs, paraids, paraid_vecs, max_se
 
 
 def main():
-    with open('/media/sumanta/Seagate Backup Plus Drive/TREC2020_podcast_track/treccar_helper_data/by1train_nodup_toplevel_secid.json', 'r') as qd:
+    parser = argparse.ArgumentParser(description='Train summary embed vec generator')
+    parser.add_argument('-sd', '--input_data', help='Path to treccar qrels data file with secid',
+                        default='/media/sumanta/Seagate Backup Plus Drive/TREC2020_podcast_track/treccar_helper_data/'
+                                'by1train_nodup_toplevel_secid.json')
+    parser.add_argument('-si', '--secid', help='Path to secid list',
+                        default='/media/sumanta/Seagate Backup Plus Drive/TREC2020_podcast_track/treccar_helper_data/'
+                                'by1train_toplevel_sections.npy')
+    parser.add_argument('-sv', '--sec_vecs', help='Path to section vecs',
+                        default='/media/sumanta/Seagate Backup Plus Drive/TREC2020_podcast_track/treccar_helper_data/'
+                                'by1train_toplevel_section_vecs.npy')
+    parser.add_argument('-pi', '--paraid', help='Path to paraid list',
+                        default='/media/sumanta/Seagate Backup Plus Drive/SentenceBERT_embeddings/'
+                                'sentbert_embeddings_by1train/bert-base-passage-wiki-sec-mean/paraids.npy')
+    parser.add_argument('-pv', '--paravecs', help='Path to para vecs',
+                        default='/media/sumanta/Seagate Backup Plus Drive/SentenceBERT_embeddings/'
+                                'sentbert_embeddings_by1train/bert-base-passage-wiki-sec-mean/'
+                                'bert-base-wikipedia-sections-mean-tokens-passage-part1.npy')
+    args = parser.parse_args()
+    with open(args.input_data, 'r') as qd:
         dat = json.load(qd)
-    secids = list(np.load('/media/sumanta/Seagate Backup Plus Drive/TREC2020_podcast_track/treccar_helper_data/by1train_toplevel_sections.npy'))
-    secid_vecs = np.load('/media/sumanta/Seagate Backup Plus Drive/TREC2020_podcast_track/treccar_helper_data/by1train_toplevel_section_vecs.npy')
-    paraids = list(np.load('/media/sumanta/Seagate Backup Plus Drive/SentenceBERT_embeddings/sentbert_embeddings_by1train/bert-base-passage-wiki-sec-mean/paraids.npy'))
-    paraid_vecs = np.load('/media/sumanta/Seagate Backup Plus Drive/SentenceBERT_embeddings/sentbert_embeddings_by1train/bert-base-passage-wiki-sec-mean/bert-base-wikipedia-sections-mean-tokens-passage-part1.npy')
+    secids = list(np.load(args.secid))
+    secid_vecs = np.load(args.sec_vecs)
+    paraids = list(np.load(args.paraid))
+    paraid_vecs = np.load(args.paravecs)
+
+    if torch.cuda.is_available():
+        torch.cuda.set_device(torch.device('cuda:0'))
+    else:
+        torch.cuda.set_device(torch.device('cpu'))
 
     run_model(dat, secids, secid_vecs, paraids, paraid_vecs, 10, 768)
 
