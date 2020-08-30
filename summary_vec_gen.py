@@ -44,8 +44,9 @@ def run_model(qrels_secid_data, secids, secid_vecs, paraids, paraid_vecs, max_se
             dat += list(np.zeros((max_seq_len - len(dat), emb_vec_size)))
         X.append(dat)
         y.append(secid_vecs[secids.index(s)])
-    train_indices = random.sample(list(range(X.shape[0])), X.shape[0]*4//5)
-    val_indices = [i for i in range(X.shape[0]) if i not in train_indices]
+    sample_size = len(X)
+    train_indices = random.sample(list(range(sample_size)), sample_size*4//5)
+    val_indices = [i for i in range(sample_size) if i not in train_indices]
 
     X = torch.tensor(X).float().cuda()
     y = torch.tensor(y).float().cuda()
