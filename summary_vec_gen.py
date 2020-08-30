@@ -39,8 +39,8 @@ def run_model(qrels_secid_data, secids, secid_vecs, paraids, paraid_vecs, max_se
             dat += list(np.zeros((max_seq_len - len(dat), emb_vec_size)))
         X.append(dat)
         y.append(secid_vecs[secids.index(s)])
-    X = torch.tensor(X).float()
-    y = torch.tensor(y).float()
+    X = torch.tensor(X).float().cuda()
+    y = torch.tensor(y).float().cuda()
 
     m = SummaryEmbedGen(emb_vec_size, max_seq_len)
     opt = optim.Adam(m.parameters(), lr=0.001)
@@ -53,8 +53,8 @@ def run_model(qrels_secid_data, secids, secid_vecs, paraids, paraid_vecs, max_se
         opt.step()
         if i % 100 == 0:
             print(loss)
-    print(y)
-    print(m(X))
+    print(y.detach().cpu().numpy())
+    print(m(X).detach().cpu().numpy())
 
 
 def main():
