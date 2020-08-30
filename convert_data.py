@@ -2,11 +2,13 @@ import json
 import os
 from hashlib import sha1
 import torch
+import numpy as np
 from numpy.random import seed
 seed(42)
 torch.manual_seed(42)
 import random
 random.seed(42)
+from sentence_transformers import SentenceTransformer
 
 def convert_to_plain_data(root_dir, plain_output_file, output_file_id_file):
     input_episodes = []
@@ -82,3 +84,16 @@ def convert_qrels_to_secid_dict(qrels_file, secid_dict_output):
             print(len(qrels_secid))
     with open(secid_dict_output, 'w') as out:
         json.dump(qrels_secid, out)
+
+def generate_section_embeds(secid_dict, secid_out, secvec_out, model_name='bert-base-wikipedia-sections-mean-tokens'):
+    with open(secid_dict, 'r') as f:
+        dat = json.load(f)
+    texts = []
+    secids = []
+    for s in dat.keys():
+        secids.append(s)
+        texts.append(secid_dict[s]['qtext'])
+    np.save(secid_out, secids)
+    model = SentenceTransformer(model_name)
+    vecs = model.encode(texts, show_progress_bar=True)
+    np.save(secvec_out, vecs)
