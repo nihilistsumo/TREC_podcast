@@ -42,12 +42,12 @@ def run_model(qrels_secid_data, secids, secid_vecs, paraids, paraid_vecs, max_se
     X = torch.tensor(X).float().cuda()
     y = torch.tensor(y).float().cuda()
 
-    m = SummaryEmbedGen(emb_vec_size, max_seq_len)
+    m = SummaryEmbedGen(emb_vec_size, max_seq_len).cuda()
     opt = optim.Adam(m.parameters(), lr=0.001)
     mseloss = nn.MSELoss()
     for i in range(1000):
         opt.zero_grad()
-        ypred = m(X).cuda()
+        ypred = m(X)
         loss = mseloss(ypred, y)
         loss.backward()
         opt.step()
