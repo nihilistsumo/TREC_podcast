@@ -2,6 +2,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
+from numpy.random import seed
+seed(42)
+torch.manual_seed(42)
+import random
+random.seed(42)
 import json
 import argparse
 
@@ -39,21 +44,32 @@ def run_model(qrels_secid_data, secids, secid_vecs, paraids, paraid_vecs, max_se
             dat += list(np.zeros((max_seq_len - len(dat), emb_vec_size)))
         X.append(dat)
         y.append(secid_vecs[secids.index(s)])
+    train_indices = random.sample(list(range(X.shape[0])), X.shape[0]*4//5)
+    val_indices = [i for i in range(X.shape[0]) if i not in train_indices]
+
     X = torch.tensor(X).float().cuda()
     y = torch.tensor(y).float().cuda()
+    X_val = torch.index_select(X, 0, val_indices)
+    y_val = torch.index_select(y, 0, val_indices)
+    X = torch.index_select(X, 0, train_indices)
+    y = torch.index_select(y, 0, train_indices)
 
     m = SummaryEmbedGen(emb_vec_size, max_seq_len).cuda()
     opt = optim.Adam(m.parameters(), lr=lr)
     mseloss = nn.MSELoss()
     for i in range(iter):
+        m.train()
         opt.zero_grad()
         ypred = m(X)
         loss = mseloss(ypred, y)
         loss.backward()
         opt.step()
         if i % 100 == 0:
-            print(loss.item())
-    print('Final loss: '+str(loss.item()))
+            m.eval()
+            ypred_val = m(X_val)
+            val_loss = mseloss(ypred_val, y_val)
+            print('Train loss: %.5f, Val loss: %.5f' % (loss.item(), val_loss.item()))
+    print('Final loss: %.5f' % loss.item())
     print(y.detach().cpu().numpy())
     print(m(X).detach().cpu().numpy())
     torch.save(m.state_dict(), outpath)

@@ -1,4 +1,10 @@
 import os
+import torch
+from numpy.random import seed
+seed(42)
+torch.manual_seed(42)
+import random
+random.seed(42)
 
 def run_summary(root_dir, output_dir):
     print(root_dir)

@@ -1,6 +1,12 @@
 import json
 import os
 from hashlib import sha1
+import torch
+from numpy.random import seed
+seed(42)
+torch.manual_seed(42)
+import random
+random.seed(42)
 
 def convert_to_plain_data(root_dir, plain_output_file, output_file_id_file):
     input_episodes = []
