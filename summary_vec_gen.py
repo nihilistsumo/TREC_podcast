@@ -22,7 +22,7 @@ class SummaryEmbedGen(nn.Module):
         vec_out = self.lout(last_lstm_output)
         return vec_out
 
-def run_model(qrels_secid_data, secids, secid_vecs, paraids, paraid_vecs, max_seq_len, emb_vec_size):
+def run_model(qrels_secid_data, secids, secid_vecs, paraids, paraid_vecs, max_seq_len, emb_vec_size, iter, lr, outpath):
     X = []
     y = []
     for s in qrels_secid_data.keys():
@@ -43,18 +43,20 @@ def run_model(qrels_secid_data, secids, secid_vecs, paraids, paraid_vecs, max_se
     y = torch.tensor(y).float().cuda()
 
     m = SummaryEmbedGen(emb_vec_size, max_seq_len).cuda()
-    opt = optim.Adam(m.parameters(), lr=0.001)
+    opt = optim.Adam(m.parameters(), lr=lr)
     mseloss = nn.MSELoss()
-    for i in range(1000):
+    for i in range(iter):
         opt.zero_grad()
         ypred = m(X)
         loss = mseloss(ypred, y)
         loss.backward()
         opt.step()
         if i % 100 == 0:
-            print(loss)
+            print(loss.item())
+    print('Final loss: '+str(loss.item()))
     print(y.detach().cpu().numpy())
     print(m(X).detach().cpu().numpy())
+    torch.save(m.state_dict(), outpath)
 
 
 def main():
@@ -75,6 +77,13 @@ def main():
                         default='/media/sumanta/Seagate Backup Plus Drive/SentenceBERT_embeddings/'
                                 'sentbert_embeddings_by1train/bert-base-passage-wiki-sec-mean/'
                                 'bert-base-wikipedia-sections-mean-tokens-passage-part1.npy')
+    parser.add_argument('-mo', '--model_out', help='Path to model output',
+                        default='/media/sumanta/Seagate Backup Plus Drive/TREC2020_podcast_track/treccar_helper_data/'
+                                'by1train_nodup_toplevel.model')
+    parser.add_argument('-seq', '--max_seq_len', type=int, default=10, help='Maximum sequence length')
+    parser.add_argument('-emb', '--emb_dim', type=int, default=768, help='Embedding vector length')
+    parser.add_argument('-lr', '--learning_rate', type=float, default=0.001, help='Learning rate')
+    parser.add_argument('-it', '--num_iter', type=int, default=1000, help='Num of iterations')
     args = parser.parse_args()
     with open(args.input_data, 'r') as qd:
         dat = json.load(qd)
@@ -88,7 +97,8 @@ def main():
     else:
         torch.cuda.set_device(torch.device('cpu'))
 
-    run_model(dat, secids, secid_vecs, paraids, paraid_vecs, 10, 768)
+    run_model(dat, secids, secid_vecs, paraids, paraid_vecs, args.max_seq_len, args.emb_dim, args.num_iter,
+              args.learning_rate, args.model_out)
 
 '''
 def main():
