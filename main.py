@@ -9,16 +9,22 @@ random.seed(42)
 import json
 from summary_vec_gen import SummaryEmbedGen
 from sentence_transformers import SentenceTransformer
+import argparse
 
-def run_summary(root_dir, output_dir):
+def run_summary(root_dir, output_dir, sorted_summary_path, max_summary_lines):
+    with open(sorted_summary_path, 'r') as summ:
+        sorted_summary = json.load(summ)
     print(root_dir)
     for dir_name, subdirs, files in os.walk(root_dir):
         for d in subdirs:
             os.makedirs(os.path.join(output_dir + '/' + dir_name[len(root_dir)+1:] +'/' + d))
         if len(files) > 0:
             for f in files:
-                with open(os.path.join(output_dir + '/' + dir_name[len(root_dir)+1:] + '/' + f), 'w') as out:
-                    out.write('file written')
+                ep_id = f.split('.')[0]
+                with open(os.path.join(output_dir + '/' + dir_name[len(root_dir)+1:] + '/' + ep_id + '_summary.txt'),
+                          'w') as out:
+                    summary = '. '.join(sorted_summary[f][:max_summary_lines])
+                    out.write(summary)
 
 def generate_sorted_summary_lines(summary_lines_dict, summary_vec_gen_model, out_file, max_seq_len=10, emb_vec_size=768,
                      embed_model_name='bert-base-wikipedia-sections-mean-tokens'):
@@ -61,8 +67,17 @@ def generate_sorted_summary_lines(summary_lines_dict, summary_vec_gen_model, out
 
 
 def main():
-    run_summary('/media/sumanta/Seagate Backup Plus Drive/TREC2020_podcast_track/spotify-podcasts-2020/podcasts-transcripts-summarization-testset',
-                '/media/sumanta/Seagate Backup Plus Drive/TREC2020_podcast_track/spotify-podcasts-2020/output')
+    parser = argparse.ArgumentParser(description='Generate summary files in TREC2020 Podcast track format')
+    parser.add_argument('-id', '--input_dir', help='Path to TREC2020 podcast summarization task input directory',
+                        default='/media/sumanta/Seagate Backup Plus Drive/TREC2020_podcast_track/spotify-podcasts-2020/podcasts-transcripts-summarization-testset')
+    parser.add_argument('-od', '--output_dir', help='Path to summary result output directory',
+                        default='/media/sumanta/Seagate Backup Plus Drive/TREC2020_podcast_track/spotify-podcasts-2020/output')
+    parser.add_argument('-si', '--sorted_summary_dict', help='Path to sorted summary dict',
+                        default='/media/sumanta/Seagate Backup Plus Drive/TREC2020_podcast_track/summary_data/sorted_podcast_summary_seq_15_seq_len_1000_by1train_gensum.json')
+    parser.add_argument('-ml', '--max_summary_len', type=int, default=3, help='Max summary lines count')
+    args = parser.parse_args()
+
+    run_summary(args.input_dir, args.output_dir, args.sorted_summary_dict, args.max_summary_len)
 
 if __name__ == '__main__':
     main()
