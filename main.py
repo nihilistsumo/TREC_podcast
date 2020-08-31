@@ -22,10 +22,11 @@ def run_summary(root_dir, output_dir):
 
 def generate_sorted_summary_lines(summary_lines_dict, summary_vec_gen_model, out_file, max_seq_len=10, emb_vec_size=768,
                      embed_model_name='bert-base-wikipedia-sections-mean-tokens'):
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     with open(summary_lines_dict, 'r') as sd:
         summary_lines = json.load(sd)
-    m = SummaryEmbedGen(emb_vec_size, max_seq_len).cuda()
-    m.load_state_dict(torch.load(summary_vec_gen_model))
+    m = SummaryEmbedGen(emb_vec_size, max_seq_len)
+    m.load_state_dict(torch.load(summary_vec_gen_model, map_location=device))
     m.eval()
     emb_model = SentenceTransformer(embed_model_name)
     X = []
@@ -38,7 +39,7 @@ def generate_sorted_summary_lines(summary_lines_dict, summary_vec_gen_model, out
             summary_emb_vecs = np.vstack((summary_emb_vecs,
                                           np.zeros((max_seq_len - summary_emb_vecs.shape[0], emb_vec_size))))
         X.append(summary_emb_vecs)
-    X = torch.tensor(X).cuda()
+    X = torch.tensor(X).float().to(device)
     inferred_summary_vec = m(X).detach().cpu().numpy()
     X = X.detach().cpu().numpy()
     summary_sim_matrix = np.array([np.dot(X[i], inferred_summary_vec[i])/
