@@ -38,7 +38,7 @@ def produce_gan_podcast_run(result_file, episode_id_file, root_dir, output_dir):
         summaries = rf.readlines()
     assert len(episodes) == len(summaries)
 
-def split_plain_input_text(input_text, outdir):
+def split_plain_input_text(input_text, outdir, chunk_size = 1000, iterations = 10):
     lines = []
     with open(input_text, 'r') as pi:
         for l in pi:
@@ -49,8 +49,7 @@ def split_plain_input_text(input_text, outdir):
     chunks = []
     for l in lines:
         chunks.append([])
-    chunk_size = 1000
-    iterations = 10
+
     for i in range(iterations):
         for j in range(len(lines)):
             words = line_words[j]
