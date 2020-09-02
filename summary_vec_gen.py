@@ -38,9 +38,9 @@ def run_model(qrels_secid_data, secids, secid_vecs, paraids, paraid_vecs, max_se
         for p in paralist:
             paravec = paraid_vecs[paraids.index(p)]
             dat.append(paravec)
-        if len(dat) > max_seq_len:
-            dat = dat[:max_seq_len]
-        elif len(dat) < max_seq_len:
+            if len(dat) == max_seq_len:
+                break
+        if len(dat) < max_seq_len:
             dat += list(np.zeros((max_seq_len - len(dat), emb_vec_size)))
         X.append(dat)
         y.append(secid_vecs[secids.index(s)])
