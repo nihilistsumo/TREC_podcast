@@ -58,6 +58,7 @@ def run_model(qrels_secid_data, secids, secid_vecs, paraids, paraid_vecs, max_se
     m = SummaryEmbedGen(emb_vec_size, max_seq_len).cuda()
     opt = optim.Adam(m.parameters(), lr=lr)
     mseloss = nn.MSELoss()
+    print("Tensor prepared, going to start training...")
     for i in range(iter):
         m.train()
         opt.zero_grad()
@@ -108,6 +109,7 @@ def main():
     secid_vecs = np.load(args.sec_vecs)
     paraids = list(np.load(args.paraid))
     paraid_vecs = np.load(args.paravecs)
+    print("Data loaded, going to run model")
 
     if torch.cuda.is_available():
         torch.cuda.set_device(torch.device('cuda:0'))
