@@ -32,7 +32,8 @@ def generate_sorted_summary_lines(summary_lines_dict, summary_vec_gen_model, out
     with open(summary_lines_dict, 'r') as sd:
         summary_lines = json.load(sd)
     m = SummaryEmbedGen(emb_vec_size, max_seq_len)
-    m.load_state_dict(torch.load(summary_vec_gen_model, map_location=device))
+    m.load_state_dict(torch.load(summary_vec_gen_model))
+    m.to(device)
     m.eval()
     emb_model = SentenceTransformer(embed_model_name)
     X = []
